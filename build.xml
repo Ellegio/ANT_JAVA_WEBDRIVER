@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- WARNING: Eclipse auto-generated file.
+              Any modifications will be overwritten.
+              To include a user specific buildfile here, simply create one in the same
+              directory with the processing instruction <?eclipse.ant.import?>
+              as the first entry and export the buildfile again. -->
+<project basedir="." default="install" name="Automation">
+	<property environment="env" />
+	<property name="debuglevel" value="source,lines,vars" />
+	<property name="target" value="1.7" />
+	<property name="source" value="1.7" />
+
+	<!-- Property -->
+	<property name="ws.root" value="${basedir}" />
+	<property name="ws.driver" value="${basedir}/driver" />
+	<property name="ws.bin" value="${basedir}/bin" />
+	<property name="ws.src" value="${basedir}/src" />
+	<property name="ws.lib" value="${basedir}/lib" />
+
+	<!-- Setting.properties -->
+	<property name="selenium.host" value="https://accounts.google.com/ServiceLogin?sacu=1" />
+	<property name="selenium.browser" value="Mozilla" />
+	<property name="selenium.timeout" value="31" />
+
+	<property name="webdriver.ie" value="${ws.driver}/IEDriverServer.exe" />
+
+	<path id="Automation.classpath">
+		<pathelement location="bin" />
+		<fileset dir="${ws.lib}">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<target name="setClassPath" unless="project.classpath">
+		<path id="classpath_jars">
+			<fileset dir="${ws.lib}" includes="**.*jar" />
+		</path>
+
+		<pathconvert pathsep=":" property="project.classpath" refid="classpath_jars" />
+	</target>
+	<!-- init -->
+	<target name="init" depends="setClassPath">
+		<mkdir dir="${ws.bin}" />
+		<mkdir dir="${ws.driver}" />
+
+		<copy includeemptydirs="false" todir="bin">
+			<fileset dir="src">
+				<exclude name="**/*.launch" />
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+
+		<copy includeemptydirs="false" todir="bin">
+			<fileset dir="test">
+				<exclude name="**/*.launch" />
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+
+		<!-- copy log4j.properties to src\bin -->
+		<copy includeemptydirs="false" todir="${ws.bin}">
+			<fileset dir="log">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+
+		<propertyfile file="log\log4j.properties">
+			<entry key="log4j.appender.dest1.File" value="log4j.log" />
+		</propertyfile>
+
+		<propertyfile file="Setting.properties" comment="My properties">
+			<entry key="selenium.browser" value="${selenium.browser}" />
+			<entry key="selenium.host" value="${selenium.host}" />
+			<entry key="selenium.timeout" value="${selenium.timeout}" />
+			<entry key="webdriver.ie" value="${webdriver.ie}" />
+		</propertyfile>
+
+		<tstamp>
+			<format property="start.time" pattern="MM/dd/yyyy hh:mm aa" />
+		</tstamp>
+
+		<condition property="ANT" value="${env.ANT_HOME}/bin/ant.bat" else="${env.ANT_HOME}/bin/ant">
+			<os family="windows" />
+		</condition>
+	</target>
+
+	<!-- compile -->
+	<target name="compile" depends="init">
+		<javac debug="true" destdir="${ws.bin}" srcdir="${ws.src}" target="1.7" classpath="${project.classpath}" includeAntRuntime="no">
+		</javac>
+		<copy todir="${ws.bin}">
+			<fileset dir="${ws.src}" excludes="**/*.java" />
+		</copy>
+	</target>
+
+	<!-- clean -->
+	<target name="clean">
+		<delete dir="${ws.bin}" />
+		<delete dir="${basedir}/test-output" />
+	</target>
+
+	<!-- build-project -->
+	<target depends="init" name="build-project">
+		<echo message="${ant.project.name}: ${ant.file}" />
+		<javac debug="true" debuglevel="${debuglevel}" destdir="bin" includeantruntime="false" source="${source}" target="${target}">
+			<src path="src" />
+			<src path="test" />
+			<classpath refid="Automation.classpath" />
+		</javac>
+	</target>
+
+	<!-- runTestNG -->
+	<target depends="build-project,setup" name="install">
+		<mkdir dir="${basedir}/test-output" />
+		<!-- Create the output directory. -->
+		<testng outputdir="${basedir}/test-output" classpathref="Automation.classpath">
+			<xmlfileset dir="." includes="testng.xml" />
+		</testng>
+	</target>
+
+	<!-- testng -->
+	<taskdef name="testng" classname="org.testng.TestNGAntTask">
+		<classpath>
+			<pathelement location="${ws.lib}/testng-6.8.8.jar" />
+		</classpath>
+	</taskdef>
+
+	<!-- libs -->
+	<target name="setup" depends="webdriver">
+		<get dest="${ws.lib}" skipexisting="true" verbose="on">
+			<url url="http://selenium-release.storage.googleapis.com/2.44/selenium-server-standalone-2.44.0.jar" />
+			<url url="http://repo1.maven.org/maven2/log4j/log4j/1.2.13/log4j-1.2.13.jar" />
+		</get>
+	</target>
+
+	<!-- Web driver -->
+	<target name="webdriver">
+		<get dest="${ws.driver}" skipexisting="true" verbose="on">
+			<url url="http://selenium-release.storage.googleapis.com/2.44/IEDriverServer_Win32_2.44.0.zip" />
+		</get>
+		<unzip src="${ws.driver}/IEDriverServer_Win32_2.44.0.zip" dest="${ws.driver}" />
+	</target>
+</project>

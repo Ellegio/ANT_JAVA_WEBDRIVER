@@ -1,0 +1,6 @@
+user.email=id=Email
+user.pwd=id=Passwd
+user.submitBtn=id=signIn
+
+msg.errEmail=id=errormsg_0_Email
+msg.errPwd=id=errormsg_0_Passwd
